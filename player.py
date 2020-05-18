@@ -10,9 +10,10 @@ class Cartesian2D:
 
 
 class player:
-    def __init__(self, imageUrl, position = Cartesian2D(0,0)):
+    def __init__(self, imageUrl ="", position = Cartesian2D(0,0)):
         self.position = position
         self.imageUrl = imageUrl
+        print(self.toString())
 
     def toString(self):
         return "{} on position {} with imageUrl '{}'".format(type(self).__name__, self.position.toString(), self.imageUrl)

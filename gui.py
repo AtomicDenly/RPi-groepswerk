@@ -5,6 +5,7 @@ from time import sleep
 import paho.mqtt.client as paho
 from threading import Thread
 from PIL import Image
+import player as p
 
 
 window = tk.Tk()
@@ -19,15 +20,22 @@ text.pack(fill="x")
 canvas = tk.Canvas(window)
 canvas.pack(fill=tk.BOTH, expand = tk.YES,)
 
-toiletRollPhotos = [tk.PhotoImage(file="toiletRoll_100x100.png")]
-#photos.append(tk.PhotoImage(file="toiletRoll_50x50.png"))
+players = [p.toiletRoll(), p.virus(), p.cart(), p.toiletRoll(position=p.Cartesian2D(400,200))]
+photo1 = tk.PhotoImage(file=players[0].imageUrl)
+photo2 = tk.PhotoImage(file=players[1].imageUrl)
+photo3 = tk.PhotoImage(file=players[2].imageUrl)
 
-cartPhotos = [tk.PhotoImage(file="greenShoppingCart.png")]
+images = [canvas.create_image(players[0].position.x,players[0].position.y, anchor = tk.NW, image=photo1)]
+images.append(canvas.create_image(players[1].position.x,players[1].position.y, anchor = tk.NW, image=photo2))
+images.append(canvas.create_image(players[2].position.x,players[2].position.y, anchor = tk.NW, image=photo3))
 
-virusPhotos = [tk.PhotoImage(file="virus.png")]
 
-images = [canvas.create_image( 150, 50, anchor=tk.NW, image=toiletRollPhotos[0])]
-images.append(canvas.create_image( 500, 400, anchor=tk.NW, image=cartPhotos[0]))
-images.append(canvas.create_image( 900, 50, anchor=tk.NW, image=virusPhotos[0]))
+for pl in players:
+    photo = tk.PhotoImage(file=pl.imageUrl)
+    x = pl.position.x
+    y = pl.position.y
+    images.append(canvas.create_image(x, y, anchor=tk.NW, image=photo))
 
+
+#images.append(canvas.create_image(players[0].position.x,players[0].position.y, anchor = tk.NW, image=tk.PhotoImage(file="toiletRoll_100x100.png")))
 window.mainloop()

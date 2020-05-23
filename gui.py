@@ -20,8 +20,7 @@ import glob
 players = [p.toiletRoll(), p.virus(), p.cart()]
 resolution = "1024x768"
 update = True
-photos=[]
-images=[]
+photos, images, playerNr= [], [], []
 
 def getImageSizesAsString():
     imageInfo = ""
@@ -50,18 +49,17 @@ def gui():
     while True:
         global update
         if update:
+            canvas.delete("all")
             global resolution
             window.geometry(resolution)  
             canvas.pack(fill=tk.BOTH, expand = tk.YES)
  
-            global players
-            global photos
-            global images
-            images = []
-            photos = []
+            global players, photos, images, playerNr
+            photos, images, playerNr= [], [], []
             i = 0
             for pl in players:
-                print(pl.toString())
+                #print(pl.toString())
+                playerNr.append(canvas.create_text(pl.position.x-10, pl.position.y+10, text= str(i+1)))
                 photos.append(tk.PhotoImage(file=pl.imageUrl))
                 canvas.create_image(pl.position.x, pl.position.y, anchor=tk.NW, image=photos[i])
                 i += 1 
@@ -182,7 +180,7 @@ def mqqtClient():
         client.message_callback_add('coronahamstergame/gui/status', on_message_status)
 
         client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
-        #client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
+        # client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
         client.subscribe("coronahamstergame/gui/#", qos=1)
         client.loop_start()
 

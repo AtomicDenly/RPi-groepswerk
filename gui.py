@@ -6,8 +6,8 @@
 #       - [unsuccesfull] split up in different files + main function
 #       - [Done] terminate program when clicking 'x'
 #       - [Done] give player width and height
-#       -als afbeelding veranderd dan moet height en width ook veranderen bij player 
-#       -setup broker connection
+#       - [Done] als afbeelding veranderd dan moet height en width ook veranderen bij player 
+#       - [Done] setup broker connection
 #       - [done] testing
 #
 

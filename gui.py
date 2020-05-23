@@ -1,17 +1,20 @@
 #!/usr/bin/python3
 
 #
-# ToDo: -send player status or image on request
+# ToDo: - [Done] send player status or image on request
+#       - [Done] make list of local images and their sizes + maybe safe them in dedicated folder
 #       -split up in different files + main function
+#       -[Done] terminate program when clicking 'x'
+#       -[Done] give player width and height
 #       -setup broker connection
-#       -terminate program when clicking 'x'
 #       -testing
 #
 
 import tkinter as tk
 from PIL import Image
 import player as p 
-from threading import Thread  
+from threading import Thread 
+import glob 
 
 players = [p.toiletRoll(), p.virus(), p.cart()]
 resolution = "1024x768"
@@ -19,12 +22,34 @@ update = True
 photos=[]
 images=[]
 
+def getImageSizesAsString():
+    imageInfo = ""
+    i = 0
+    for filename in glob.glob('images/*.png'): 
+        im=Image.open(filename)
+        width, height = im.size
+        imageInfo += "i:{};filename:{};width:{};height:{};\n".format(i,filename, width, height)
+        i += 1
+    return imageInfo
+
+def find_between(s, first, last):
+            try:
+                start = s.index(first) + len(first)
+                end = s.index(last, start)
+                return s[start:end]
+            except ValueError:
+                return ""
+
 def gui():
     window = tk.Tk()
     window.title("Corona Hamster Game")
     window.resizable(False,False)
     canvas = tk.Canvas(window)
-
+    
+    # def on_closing():
+    #     print("closing----------------------------------")
+    #     window.destroy()
+    # window.protocol("WM_DELETE_WINDOW", on_closing)
     while True:
         global update
         if update:
@@ -44,9 +69,6 @@ def gui():
             for pl in players:
                 print(pl.toString())
                 photos.append(tk.PhotoImage(file=pl.imageUrl))
-                # x = pl.position.x
-                # y = pl.position.y
-                # images.append(canvas.create_image(pl.position.x, pl.position.y, anchor=tk.NW, image=photos[i]))
                 canvas.create_image(pl.position.x, pl.position.y, anchor=tk.NW, image=photos[i])
                 i += 1 
         update = False
@@ -56,14 +78,6 @@ def gui():
 import paho.mqtt.client as paho
 
 def mqqtClient():
-
-        def find_between(s, first, last):
-            try:
-                start = s.index(first) + len(first)
-                end = s.index(last, start)
-                return s[start:end]
-            except ValueError:
-                return ""
         
         def on_connect(host, port, keepalive):
             #print("Connected")
@@ -149,22 +163,17 @@ def mqqtClient():
             #message format: "request:image_sizes;" or "request:player_status;"
             global players
             global update
-            pIndex = find_between(str(msg.payload), "p:", ";")
-            playerType = find_between(str(msg.payload), "t:", ";")
+            command  = find_between(str(msg.payload), "request:", ";")
             
-            if playerType == "t":
-                player = p.toiletRoll()
-            elif playerType == "v":
-                player = p.virus()
-            elif playerType == "c":
-                player = p.cart
-                
-            if pIndex == "last":
-                    players.append(player)
-            else:
-                players.index(int(pIndex),player)
-            
-            update = True
+            if command == "image_sizes":
+                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=1)
+            elif command == "player_status":
+                playerstats = ""
+                i = 0
+                for p in players:
+                    playerstats += "i:{};".format(i) + p.toString() + "\n"
+                    i += 1
+                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=1)
 
         client = paho.Client(client_id="clientId-gui2ea", clean_session=True, userdata=None, protocol=paho.MQTTv31)
         client.on_connect = on_connect
@@ -183,7 +192,7 @@ def mqqtClient():
         client.subscribe("coronahamstergame/gui/#", qos=1)
         client.loop_start()
 
-        input("press enter\n")
+        #input("press enter\n")
     
 #mqqtClient()
 task1 = Thread(target=gui)

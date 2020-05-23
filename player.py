@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from PIL import Image
+
 class Cartesian2D:
     def __init__(self, x = 0.0, y = 0.0):
         self.x = x
@@ -10,13 +12,17 @@ class Cartesian2D:
 
 
 class player:
-    def __init__(self, imageUrl ="", position = Cartesian2D(0,0)):
+    def __init__(self, imageUrl, position = Cartesian2D(0,0)):
         self.position = position
         self.imageUrl = imageUrl
+        im=Image.open(imageUrl)
+        width, height = im.size
+        self.width = width
+        self.height = height
         #print(self.toString())
 
     def toString(self):
-        return "{} on position {} with imageUrl '{}'".format(type(self).__name__, self.position.toString(), self.imageUrl)
+        return "type:{};position:{};width:{};height:{};imageUrl:{};".format(type(self).__name__, self.position.toString(), self.width, self.height, self.imageUrl)
 
     def moveTo(self,x :float,y :float):
         self.position = Cartesian2D(x=x,y=y)
@@ -33,15 +39,15 @@ class player:
 
 
 class toiletRoll(player): 
-    def __init__(self, imageUrl = "toiletRoll_100x100.png", position = Cartesian2D(150,50)):
+    def __init__(self, imageUrl = "images/toiletRoll_100x100.png", position = Cartesian2D(150,50)):
         super().__init__(imageUrl, position)
 
 
 class virus(player):    
-    def __init__(self, imageUrl = "virus.png", position = Cartesian2D(900,50)):
+    def __init__(self, imageUrl = "images/virus.png", position = Cartesian2D(900,50)):
         super().__init__(imageUrl, position)
 
 
 class cart(player):    
-    def __init__(self, imageUrl = "greenShoppingCart.png", position = Cartesian2D(500, 400)):
+    def __init__(self, imageUrl = "images/greenShoppingCart.png", position = Cartesian2D(500, 400)):
         super().__init__(imageUrl, position)        

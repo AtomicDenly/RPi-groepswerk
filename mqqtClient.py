@@ -1,29 +1,118 @@
-#!/usr/bin/python3
 
-import paho.mqtt.client as paho
+def mqqtClient():
+        import paho.mqtt.client as paho
 
-def on_connect(host, port, keepalive):
-    print("Connected")
+        def on_connect(host, port, keepalive):
+            #print("Connected")
+            pass
 
-def on_subscribe(client, userdata, mid, granted_qos):
-    print("subscribed")
+        def on_subscribe(client, userdata, mid, granted_qos):
+            #print("subscribed")
+            pass
 
-def on_publish(client, userdata, mid):
-    print("published")
+        def on_publish(client, userdata, mid):
+            print("published")
 
-def on_message(client, userdata, msg):
-    mqttmsg = str(msg.payload)
-    print("Mqqt msg = " + mqttmsg)
+        def on_message(client, userdata, msg):
+            mqttmsg = str(msg.payload)
+            print("Mqqt msg = " + mqttmsg)
+        
+        def on_message_setting(client, userdata, msg):
+            #message format: "1024x768"
+            global resolution
+            global update
+            temp = str(msg.payload)
+            resolution = temp[2:-1]
+            update = True
 
-client = paho.Client(client_id="clientId-PizzaHawai", clean_session=True, userdata=None, protocol=paho.MQTTv31)
-client.on_connect = on_connect
-client.on_subscribe = on_subscribe
-client.on_message = on_message
-client.on_publish = on_publish
+        def on_message_players_m(client, userdata, msg):
+            #message format: "i:1;x:788;y:366;" i=player index, x= x position, y = y position,
+            global players
+            global update
+            pIndex = find_between(str(msg.payload), "i:", ";")
+            x = find_between(str(msg.payload), "x:", ";")
+            y = find_between(str(msg.payload), "y:", ";")
+            players[int(pIndex)].moveTo(x=float(x), y=float(y))
+            update = True
+        
+        def on_message_players_d(client, userdata, msg):
+            #message format: "i:1;" or "i:all;" i=player index or "all"
+            global players
+            global update
+            pIndex = find_between(str(msg.payload), "i:", ";")
+            if pIndex == "all":
+                players = []
+            else:
+                players.remove(int(pIndex))
+            
+            update = True
+        
+        def on_message_players_a(client, userdata, msg):
+            #message format: "i:1;t:t;" options for i = index or "last" 
+            #                           options for t: t = toiletroll, v=virus, c=cart, options for p = index or "last"
+            global players
+            global update
+            pIndex = find_between(str(msg.payload), "i:", ";")
+            playerType = find_between(str(msg.payload), "t:", ";")
+            
+            if playerType == "t":
+                player = p.toiletRoll()
+            elif playerType == "v":
+                player = p.virus()
+            elif playerType == "c":
+                player = p.cart
+                
+            if pIndex == "last":
+                    players.append(player)
+            else:
+                players.index(int(pIndex),player)
+            
+            update = True
+        
+        def on_message_players_url(client, userdata, msg):
+            #message format: "i:1;url:"existingImageurl";" 
+            #                           options for i: index 
+            #                           options for url: url for image
+            global players
+            global update
+            pIndex = find_between(str(msg.payload), "i:", ";")
+            url = find_between(str(msg.payload), "url:", ";")
+            
+            players[int(pIndex)].imageUrl = url
+            
+            update = True
 
-client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
-client.subscribe("testtopic/gui26", qos=1)
+        def on_message_status(client, userdata, msg):
+            #message format: "request:image_sizes;" or "request:player_status;"
+            global players
+            global update
+            command  = find_between(str(msg.payload), "request:", ";")
+            
+            if command == "image_sizes":
+                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=1)
+            elif command == "player_status":
+                playerstats = ""
+                i = 0
+                for p in players:
+                    playerstats += "i:{};".format(i) + p.toString() + "\n"
+                    i += 1
+                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=1)
 
-client.loop_start()
+        client = paho.Client(client_id="clientId-gui2ea", clean_session=True, userdata=None, protocol=paho.MQTTv31)
+        client.on_connect = on_connect
+        client.on_subscribe = on_subscribe
+        client.on_message = on_message
+        client.on_publish = on_publish
 
-input("press enter to quit\n")
+        client.message_callback_add('coronahamstergame/gui/settings', on_message_setting)
+        client.message_callback_add('coronahamstergame/gui/players/move', on_message_players_m)
+        client.message_callback_add('coronahamstergame/gui/players/delete', on_message_players_d)
+        client.message_callback_add('coronahamstergame/gui/players/add', on_message_players_a)
+        client.message_callback_add('coronahamstergame/gui/players/changeurl', on_message_players_url)
+        client.message_callback_add('coronahamstergame/gui/status', on_message_status)
+
+        client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
+        client.subscribe("coronahamstergame/gui/#", qos=1)
+        client.loop_start()
+
+        #input("press enter\n")

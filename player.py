@@ -15,11 +15,19 @@ class player:
     def __init__(self, imageUrl, position = Cartesian2D(0,0)):
         self.position = position
         self.imageUrl = imageUrl
-        im=Image.open(imageUrl)
-        width, height = im.size
-        self.width = width
-        self.height = height
         #print(self.toString())
+
+    @property
+    def height(self):
+        im=Image.open(self.imageUrl)
+        width, height = im.size
+        return height
+    
+    @property
+    def width(self):
+        im=Image.open(self.imageUrl)
+        width, height = im.size
+        return width
 
     def toString(self):
         return "type:{};position:{};width:{};height:{};imageUrl:{};".format(type(self).__name__, self.position.toString(), self.width, self.height, self.imageUrl)

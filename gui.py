@@ -3,11 +3,12 @@
 #
 # ToDo: - [Done] send player status or image on request
 #       - [Done] make list of local images and their sizes + maybe safe them in dedicated folder
-#       -split up in different files + main function
-#       -[Done] terminate program when clicking 'x'
-#       -[Done] give player width and height
+#       - [unsuccesfull] split up in different files + main function
+#       - [Done] terminate program when clicking 'x'
+#       - [Done] give player width and height
+#       -als afbeelding veranderd dan moet height en width ook veranderen bij player 
 #       -setup broker connection
-#       -testing
+#       - [done] testing
 #
 
 import tkinter as tk
@@ -45,21 +46,14 @@ def gui():
     window.title("Corona Hamster Game")
     window.resizable(False,False)
     canvas = tk.Canvas(window)
-    
-    # def on_closing():
-    #     print("closing----------------------------------")
-    #     window.destroy()
-    # window.protocol("WM_DELETE_WINDOW", on_closing)
+
     while True:
         global update
         if update:
             global resolution
             window.geometry(resolution)  
-            #canvas.configure(width= 1024, height=768)
             canvas.pack(fill=tk.BOTH, expand = tk.YES)
-            # canvas.delete("all")
-             
-
+ 
             global players
             global photos
             global images
@@ -95,11 +89,10 @@ def mqqtClient():
             print("Mqqt msg = " + mqttmsg)
         
         def on_message_setting(client, userdata, msg):
-            #message format: "1024x768"
+            #message format: "res:1024x768";
             global resolution
             global update
-            temp = str(msg.payload)
-            resolution = temp[2:-1]
+            resolution = find_between(str(msg.payload), "res:", ";")
             update = True
 
         def on_message_players_m(client, userdata, msg):
@@ -120,7 +113,7 @@ def mqqtClient():
             if pIndex == "all":
                 players = []
             else:
-                players.remove(int(pIndex))
+                players.pop(int(pIndex))
             
             update = True
         
@@ -137,12 +130,12 @@ def mqqtClient():
             elif playerType == "v":
                 player = p.virus()
             elif playerType == "c":
-                player = p.cart
+                player = p.cart()   
                 
             if pIndex == "last":
                     players.append(player)
             else:
-                players.index(int(pIndex),player)
+                players.insert(int(pIndex),player)
             
             update = True
         
@@ -160,14 +153,14 @@ def mqqtClient():
             update = True
 
         def on_message_status(client, userdata, msg):
-            #message format: "request:image_sizes;" or "request:player_status;"
+            #message format: "req:images;" for image sizes or "req:players;" for player status
             global players
             global update
-            command  = find_between(str(msg.payload), "request:", ";")
+            command  = find_between(str(msg.payload), "req:", ";")
             
-            if command == "image_sizes":
+            if command == "images":
                 client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=1)
-            elif command == "player_status":
+            elif command == "players":
                 playerstats = ""
                 i = 0
                 for p in players:
@@ -189,19 +182,15 @@ def mqqtClient():
         client.message_callback_add('coronahamstergame/gui/status', on_message_status)
 
         client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
+        #client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
         client.subscribe("coronahamstergame/gui/#", qos=1)
         client.loop_start()
 
-        #input("press enter\n")
-    
-#mqqtClient()
+
 task1 = Thread(target=gui)
 task2 = Thread(target=mqqtClient)
 
 task1.start()
 task2.start()
-
-#gui()
-
 
 

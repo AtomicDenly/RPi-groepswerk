@@ -16,6 +16,7 @@ from PIL import Image
 import player as p 
 from threading import Thread 
 import glob 
+import findBetween
 
 players = [] #[p.toiletRoll(), p.virus(), p.cart()]
 resolution = "1024x768"
@@ -32,14 +33,6 @@ def getImageSizesAsString():
         imageInfo += "i:{};filename:{};width:{};height:{};\n".format(i,filename, width, height)
         i += 1
     return imageInfo
-
-def find_between(s, first, last):
-            try:
-                start = s.index(first) + len(first)
-                end = s.index(last, start)
-                return s[start:end]
-            except ValueError:
-                return ""
 
 def gui():
     window = tk.Tk()
@@ -170,14 +163,14 @@ def mqqtClient():
             command  = find_between(str(msg.payload), "req:", ";")
             
             if command == "images":
-                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=0)
+                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=1)
             elif command == "players":
                 playerstats = ""
                 i = 0
                 for p in players:
                     playerstats += "i:{};".format(i) + p.toString() + "\n"
                     i += 1
-                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=0)
+                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=1)
 
         client = paho.Client(client_id="clientId-gui2ea", clean_session=True, userdata=None, protocol=paho.MQTTv31)#unique client_id is required
         client.on_connect = on_connect
@@ -200,9 +193,10 @@ def mqqtClient():
 
 
 task1 = Thread(target=gui)
-task2 = Thread(target=mqqtClient)
+# task2 = Thread(target=mqqtClient)
 
 task1.start()
-task2.start()
+# task2.start()
 
+mqqtClient()
 

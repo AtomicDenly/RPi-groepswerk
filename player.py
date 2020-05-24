@@ -45,6 +45,20 @@ class player:
     #     photoP = tk.PhotoImage(file=self.imageUrl)
     #     return canvas.create_image(self.position.x, self.position.y, anchor = tk.NW, image=photoP)
 
+class logicPlayer(player): 
+    def __init__(self, imageUrl, position, plType, _width, _height):
+        self._width = _width
+        self._height = _height
+        self.plType = plType
+        super().__init__(imageUrl, position)
+
+    @property
+    def height(self):
+        return self._height
+    
+    @property
+    def width(self):
+        return self._width
 
 class toiletRoll(player): 
     def __init__(self, imageUrl = "images/toiletRoll_100x100.png", position = Cartesian2D(150,50)):

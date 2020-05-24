@@ -1,5 +1,6 @@
 #!/usr/bin/python3                                                                                           
 
+import findBetween
 import paho.mqtt.client as paho
 
 def mqqtClient():
@@ -13,17 +14,22 @@ def mqqtClient():
             pass
 
         def on_publish(client, userdata, mid):
-            print("published")
+            #print("published")
+            pass
 
         def on_message(client, userdata, msg):
             mqttmsg = str(msg.payload)
             print("Mqqt msg = " + mqttmsg)
         
         def on_message_players_status(client, userdata, msg):
-            pass
+            print(msg.payload)
+            strings = msg.payload.splitlines()
+            print(str(len(strings)))
         
         def on_message_images_status(client, userdata, msg):
-           pass
+            # mqttmsg = str(msg.payload)
+            # print("Mqqt msg = " + mqttmsg)
+            pass
 
 
         client = paho.Client(client_id="clientId-logic2ea", clean_session=True, userdata=None, protocol=paho.MQTTv31)
@@ -45,6 +51,7 @@ def mqqtClient():
         client.publish("coronahamstergame/gui/players/add", "i:last;t:t;", qos=0)
         client.publish("coronahamstergame/gui/players/add", "i:last;t:v;", qos=0)
         client.publish("coronahamstergame/gui/players/add", "i:last;t:c;", qos=0)
+        client.publish("coronahamstergame/gui/status", "req:players;", qos=1)
             #get player properties for collision
 
         #gameloop moet in thread

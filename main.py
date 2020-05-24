@@ -37,14 +37,14 @@ def mqqtClient():
 
         client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
         # client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
-        client.subscribe("coronahamstergame/gamelogic/#", qos=1)
+        client.subscribe("coronahamstergame/gamelogic/#", qos=0)
         client.loop_start()
 
         #setup
-        client.publish("coronahamstergame/gui/players/delete", "i:all;", qos=1)
-        client.publish("coronahamstergame/gui/players/add", "i:last;t:t;", qos=1)
-        client.publish("coronahamstergame/gui/players/add", "i:last;t:v;", qos=1)
-        client.publish("coronahamstergame/gui/players/add", "i:last;t:c;", qos=1)
+        client.publish("coronahamstergame/gui/players/delete", "i:all;", qos=0)
+        client.publish("coronahamstergame/gui/players/add", "i:last;t:t;", qos=0)
+        client.publish("coronahamstergame/gui/players/add", "i:last;t:v;", qos=0)
+        client.publish("coronahamstergame/gui/players/add", "i:last;t:c;", qos=0)
             #get player properties for collision
 
         #gameloop moet in thread

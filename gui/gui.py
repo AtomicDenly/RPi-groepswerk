@@ -1,24 +1,14 @@
 #!/usr/bin/python3
 
-#
-# ToDo: - [Done] send player status or image on request
-#       - [Done] make list of local images and their sizes + maybe safe them in dedicated folder
-#       - [unsuccesfull] split up in different files + main function
-#       - [Done] terminate program when clicking 'x'
-#       - [Done] give player width and height
-#       - [Done] als afbeelding veranderd dan moet height en width ook veranderen bij player 
-#       - [Done] setup broker connection
-#       - [done] testing
-#
-
 import tkinter as tk
 from PIL import Image
 import player as p 
 from threading import Thread 
 import glob 
+from findBetween import find_between
 
 players = [] #[p.toiletRoll(), p.virus(), p.cart()]
-resolution = "1024x768"
+resolution = ""
 update = True
 photos, images= [], []
 score = [0,0]
@@ -32,14 +22,6 @@ def getImageSizesAsString():
         imageInfo += "i:{};filename:{};width:{};height:{};\n".format(i,filename, width, height)
         i += 1
     return imageInfo
-
-def find_between(s, first, last):
-            try:
-                start = s.index(first) + len(first)
-                end = s.index(last, start)
-                return s[start:end]
-            except ValueError:
-                return ""
 
 def gui():
     window = tk.Tk()
@@ -170,14 +152,14 @@ def mqqtClient():
             command  = find_between(str(msg.payload), "req:", ";")
             
             if command == "images":
-                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=0)
+                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=1)
             elif command == "players":
                 playerstats = ""
                 i = 0
                 for p in players:
                     playerstats += "i:{};".format(i) + p.toString() + "\n"
                     i += 1
-                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=0)
+                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=1)
 
         client = paho.Client(client_id="clientId-gui2ea", clean_session=True, userdata=None, protocol=paho.MQTTv31)#unique client_id is required
         client.on_connect = on_connect
@@ -193,16 +175,17 @@ def mqqtClient():
         client.message_callback_add('coronahamstergame/gui/score', on_message_score)
         client.message_callback_add('coronahamstergame/gui/status', on_message_status)
 
-        client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
-        # client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
-        client.subscribe("coronahamstergame/gui/#", qos=0)
+        #client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
+        client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
+        client.subscribe("coronahamstergame/gui/#", qos=1)
         client.loop_start()
 
 
 task1 = Thread(target=gui)
-task2 = Thread(target=mqqtClient)
+# task2 = Thread(target=mqqtClient)
 
 task1.start()
-task2.start()
+# task2.start()
 
+mqqtClient()
 

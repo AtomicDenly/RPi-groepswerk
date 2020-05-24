@@ -61,8 +61,8 @@ def mqqtClient():
         client.message_callback_add('coronahamstergame/gamelogic/gui/player_status', on_message_players_status)
         client.message_callback_add('coronahamstergame/gamelogic/gui/images_status', on_message_images_status)
 
-        client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
-        # client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
+        # client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
+        client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
         client.subscribe("coronahamstergame/gamelogic/#", qos=1)
         client.loop_start()
 

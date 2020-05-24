@@ -16,10 +16,10 @@ from PIL import Image
 import player as p 
 from threading import Thread 
 import glob 
-import findBetween
+from findBetween import find_between
 
 players = [] #[p.toiletRoll(), p.virus(), p.cart()]
-resolution = "1024x768"
+resolution = ""
 update = True
 photos, images= [], []
 score = [0,0]
@@ -188,7 +188,7 @@ def mqqtClient():
 
         client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
         # client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
-        client.subscribe("coronahamstergame/gui/#", qos=0)
+        client.subscribe("coronahamstergame/gui/#", qos=1)
         client.loop_start()
 
 

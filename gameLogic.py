@@ -5,7 +5,7 @@ import findBetween
 import paho.mqtt.client as paho
 
 def mqqtClient():
-        
+        players = []
         def on_connect(host, port, keepalive):
             #print("Connected")
             pass
@@ -24,6 +24,17 @@ def mqqtClient():
         
         def on_message_players_status(client, userdata, msg):
             strings = msg.payload.splitlines()
+            global players = []
+            for s in strings:
+                plType = find_between(s, "type:", ";")
+                x = find_between(s, "x:", ";")
+                y = find_between(s, "y:", ";")
+                width = find_between(s, "width:", ";")
+                height = find_between(s, "height:", ";")
+                imageUrl = find_between(s, "imageUrl:", ";")
+                pl = p.logicPlayer(plType= plType,position= p.Cartesian2D(x=x, y=y), _width= width, _height= height, imageUrl=imageUrl)
+                players.append(pl)
+                print(pl.toString()) 
             
         
         def on_message_images_status(client, userdata, msg):

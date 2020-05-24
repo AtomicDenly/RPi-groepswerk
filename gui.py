@@ -17,10 +17,11 @@ import player as p
 from threading import Thread 
 import glob 
 
-players = [p.toiletRoll(), p.virus(), p.cart()]
+players = [] #[p.toiletRoll(), p.virus(), p.cart()]
 resolution = "1024x768"
 update = True
-photos, images, playerNr= [], [], []
+photos, images= [], []
+score = [0,0]
 
 def getImageSizesAsString():
     imageInfo = ""
@@ -54,14 +55,15 @@ def gui():
             window.geometry(resolution)  
             canvas.pack(fill=tk.BOTH, expand = tk.YES)
  
-            global players, photos, images, playerNr
-            photos, images, playerNr= [], [], []
+            global players, photos, images, score
+            photos, images= [], []
             i = 0
             for pl in players:
                 #print(pl.toString())
-                playerNr.append(canvas.create_text(pl.position.x-10, pl.position.y+10, text= str(i+1)))
+                canvas.create_text(pl.position.x-10, pl.position.y+10, text= str(i+1))
                 photos.append(tk.PhotoImage(file=pl.imageUrl))
                 canvas.create_image(pl.position.x, pl.position.y, anchor=tk.NW, image=photos[i])
+                canvas.create_text(50, 30, text= "Score\nHamsteraars: {}\nVirus: {}".format(score[0], score[1]))
                 i += 1 
         update = False
         window.update()
@@ -149,6 +151,17 @@ def mqqtClient():
             players[int(pIndex)].imageUrl = url
             
             update = True
+        
+        def on_message_score(client, userdata, msg):
+            #message format: "score0:2;score1:4;
+            global score
+            global update
+            sc0 = find_between(str(msg.payload), "score0:", ";")
+            sc1 = find_between(str(msg.payload), "score1:", ";")
+            
+            score = [int(sc0), int(sc1)]
+            
+            update = True
 
         def on_message_status(client, userdata, msg):
             #message format: "req:images;" for image sizes or "req:players;" for player status
@@ -157,16 +170,16 @@ def mqqtClient():
             command  = find_between(str(msg.payload), "req:", ";")
             
             if command == "images":
-                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=1)
+                client.publish("coronahamstergame/gamelogic/gui/images_status", getImageSizesAsString(),qos=0)
             elif command == "players":
                 playerstats = ""
                 i = 0
                 for p in players:
                     playerstats += "i:{};".format(i) + p.toString() + "\n"
                     i += 1
-                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=1)
+                client.publish("coronahamstergame/gamelogic/gui/player_status", playerstats,qos=0)
 
-        client = paho.Client(client_id="clientId-gui2ea", clean_session=True, userdata=None, protocol=paho.MQTTv31)
+        client = paho.Client(client_id="clientId-gui2ea", clean_session=True, userdata=None, protocol=paho.MQTTv31)#unique client_id is required
         client.on_connect = on_connect
         client.on_subscribe = on_subscribe
         client.on_message = on_message
@@ -177,11 +190,12 @@ def mqqtClient():
         client.message_callback_add('coronahamstergame/gui/players/delete', on_message_players_d)
         client.message_callback_add('coronahamstergame/gui/players/add', on_message_players_a)
         client.message_callback_add('coronahamstergame/gui/players/changeurl', on_message_players_url)
+        client.message_callback_add('coronahamstergame/gui/score', on_message_score)
         client.message_callback_add('coronahamstergame/gui/status', on_message_status)
 
         client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
         # client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
-        client.subscribe("coronahamstergame/gui/#", qos=1)
+        client.subscribe("coronahamstergame/gui/#", qos=0)
         client.loop_start()
 
 

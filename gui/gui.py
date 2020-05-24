@@ -1,16 +1,5 @@
 #!/usr/bin/python3
 
-#
-# ToDo: - [Done] send player status or image on request
-#       - [Done] make list of local images and their sizes + maybe safe them in dedicated folder
-#       - [unsuccesfull] split up in different files + main function
-#       - [Done] terminate program when clicking 'x'
-#       - [Done] give player width and height
-#       - [Done] als afbeelding veranderd dan moet height en width ook veranderen bij player 
-#       - [Done] setup broker connection
-#       - [done] testing
-#
-
 import tkinter as tk
 from PIL import Image
 import player as p 

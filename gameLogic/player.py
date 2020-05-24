@@ -61,15 +61,15 @@ class logicPlayer(player):
         return self._width
 
 class toiletRoll(player): 
-    def __init__(self, imageUrl = "images/toiletRoll_100x100.png", position = Cartesian2D(150,50)):
+    def __init__(self, imageUrl = "gui/images/toiletRoll_100x100.png", position = Cartesian2D(150,50)):
         super().__init__(imageUrl, position)
 
 
 class virus(player):    
-    def __init__(self, imageUrl = "images/virus.png", position = Cartesian2D(900,50)):
+    def __init__(self, imageUrl = "gui/images/virus.png", position = Cartesian2D(900,50)):
         super().__init__(imageUrl, position)
 
 
 class cart(player):    
-    def __init__(self, imageUrl = "images/greenShoppingCart.png", position = Cartesian2D(500, 400)):
+    def __init__(self, imageUrl = "gui/images/greenShoppingCart.png", position = Cartesian2D(500, 400)):
         super().__init__(imageUrl, position)        

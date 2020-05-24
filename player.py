@@ -30,7 +30,7 @@ class player:
         return width
 
     def toString(self):
-        return "type:{};position:{};width:{};height:{};imageUrl:{};".format(type(self).__name__, self.position.toString(), self.width, self.height, self.imageUrl)
+        return "type:{};x:{};y:{};width:{};height:{};imageUrl:{};".format(type(self).__name__, self.position.x, self.position.y, self.width, self.height, self.imageUrl)
 
     def moveTo(self,x :float,y :float):
         self.position = Cartesian2D(x=x,y=y)

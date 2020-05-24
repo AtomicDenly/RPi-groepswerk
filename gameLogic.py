@@ -1,5 +1,6 @@
 #!/usr/bin/python3                                                                                           
 
+import player as p
 import findBetween
 import paho.mqtt.client as paho
 
@@ -22,9 +23,8 @@ def mqqtClient():
             print("Mqqt msg = " + mqttmsg)
         
         def on_message_players_status(client, userdata, msg):
-            print(msg.payload)
             strings = msg.payload.splitlines()
-            print(str(len(strings)))
+            
         
         def on_message_images_status(client, userdata, msg):
             # mqttmsg = str(msg.payload)

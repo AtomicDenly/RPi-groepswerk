@@ -1,11 +1,14 @@
 #!/usr/bin/python3                                                                                           
 
 import player as p
-import findBetween
+from findBetween import find_between
 import paho.mqtt.client as paho
 
 def mqqtClient():
-        players = []
+        toiletRolls, viruses, carts, players = [], [], [], []
+        screenW = 1024
+        screenH = 728
+
         def on_connect(host, port, keepalive):
             #print("Connected")
             pass
@@ -24,17 +27,23 @@ def mqqtClient():
         
         def on_message_players_status(client, userdata, msg):
             strings = msg.payload.splitlines()
-            global players = []
+            global toiletRolls, viruses, carts
+            toiletRolls, viruses, carts = [], [], []
             for s in strings:
-                plType = find_between(s, "type:", ";")
-                x = find_between(s, "x:", ";")
-                y = find_between(s, "y:", ";")
-                width = find_between(s, "width:", ";")
-                height = find_between(s, "height:", ";")
-                imageUrl = find_between(s, "imageUrl:", ";")
-                pl = p.logicPlayer(plType= plType,position= p.Cartesian2D(x=x, y=y), _width= width, _height= height, imageUrl=imageUrl)
+                plType = find_between(str(s), "type:", ";")
+                x = find_between(str(s), "x:", ";")
+                y = find_between(str(s), "y:", ";")
+                width = find_between(str(s), "width:", ";")
+                height = find_between(str(s), "height:", ";")
+                imageUrl = find_between(str(s), "imageUrl:", ";")
+                pl = p.logicPlayer(plType= plType,position= p.Cartesian2D(x=float(x), y=float(y)), _width= float(width), _height= float(height), imageUrl=imageUrl)
                 players.append(pl)
-                print(pl.toString()) 
+                if(pl.plType == "toiletRoll"):
+                    toiletRolls.append(pl)
+                elif(pl.plType == "virus"):
+                    viruses.append(pl)
+                elif(pl.plType == "cart"):
+                    carts.append(pl)
             
         
         def on_message_images_status(client, userdata, msg):
@@ -54,24 +63,43 @@ def mqqtClient():
 
         client.connect("broker.mqttdashboard.com", port=1883, keepalive=60)
         # client.connect("rasplabo.hopto.org", port=1883, keepalive=60)
-        client.subscribe("coronahamstergame/gamelogic/#", qos=0)
+        client.subscribe("coronahamstergame/gamelogic/#", qos=1)
         client.loop_start()
 
         #setup
-        client.publish("coronahamstergame/gui/players/delete", "i:all;", qos=0)
-        client.publish("coronahamstergame/gui/players/add", "i:last;t:t;", qos=0)
-        client.publish("coronahamstergame/gui/players/add", "i:last;t:v;", qos=0)
-        client.publish("coronahamstergame/gui/players/add", "i:last;t:c;", qos=0)
+        client.publish("coronahamstergame/gui/settings", "res:{}x{};".format(screenW, screenH), qos=1)
+        client.publish("coronahamstergame/gui/players/delete", "i:all;", qos=1)
+        client.publish("coronahamstergame/gui/players/add", "i:last;t:t;", qos=1)
+        client.publish("coronahamstergame/gui/players/add", "i:last;t:v;", qos=1)
+        client.publish("coronahamstergame/gui/players/add", "i:last;t:c;", qos=1)
         client.publish("coronahamstergame/gui/status", "req:players;", qos=1)
             #get player properties for collision
 
-        #gameloop moet in thread
-        xOffset, x1, x2 = 1, 0, 1024
+        def move():
+            for p in players:
+                if p.plType == "toiletRoll":
+                    p.position.x += 1 if p.position.x < screenW else -screenW
+                elif p.plType == "virus":
+                    p.position.x -= 1 if p.position.x > 0 else -screenW
+
+        def updateGUI():
+            for p in players:
+                client.publish("coronahamstergame/gui/players/move", "i:{};x:{};y:{};".format(players.index(p), p.position.x, p.position.y), qos=1)
+
+        def collision():
+            for t in players:
+                if t.plType == "toiletRoll":
+                    for v in players:
+                        if v.plType == "virus":
+                            if t.position.x <= v.position.x <= (t.position.x + t.width) or t.position.x <= (v.position.x + v.width) <= (t.position.x + t.width):
+                                if t.position.y <= v.position.y <= (t.position.y + t.height) or t.position.y <= (v.position.y + v.height) <= (t.position.y + t.height):
+                                    print("collision")      
+
+        #gameloop
         while True:
-            x1 += xOffset
-            x2 -= xOffset
-            client.publish("coronahamstergame/gui/players/move", "i:0;x:{};y:350;".format(x1), qos=1)
-            client.publish("coronahamstergame/gui/players/move", "i:1;x:{};y:350;".format(x2), qos=1)
+            move()
+            #collision()
+            updateGUI()
 
 
 mqqtClient()
